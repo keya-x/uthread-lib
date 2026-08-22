@@ -9,37 +9,35 @@ This library serves as a robust demonstration of operating system internals and 
 The library maps $M$ user-space green threads onto a single kernel thread ($M:1$ threading model). The core execution flow, preemption subsystem, and synchronization barriers are architected as follows:
 
 ```mermaid
-graph TD
-    subgraph User Space
-        ThreadA[Green Thread A]
-        ThreadB[Green Thread B]
-        Running[RUNNING Thread]
-        ReadyQ[Ready Queue]
-        WaitQ[Wait Queue / Blocked]
+flowchart TB
+    subgraph UserSpace ["User Space (M:1 Threading Model)"]
+        direction TB
         
-        subgraph Scheduler Engine
-            Sched[get_scheduler]
+        subgraph States ["Thread State Machine"]
+            Ready([READY Queue])
+            Running([RUNNING Thread])
+            Blocked([BLOCKED Queue])
         end
         
-        subgraph Sync Primitives
-            Mutex[Mutex / CV / Sem]
-        end
+        Scheduler{"Scheduler Engine\n(FCFS, RR, MLFQ, Priority)"}
+        Sync{"Synchronization\n(Mutex, Sem, CondVar)"}
+        
+        Ready ==>|Dequeued| Scheduler
+        Scheduler ==>|Context Switch| Running
+        Running -->|uthread_yield| Ready
+        Running -->|Wait on Lock| Sync
+        Sync -->|Blocks TCB| Blocked
+        Sync -->|Unlock / Signal| Ready
+        Blocked -.->|Woken Up| Ready
     end
 
-    subgraph Kernel Space
-        Timer[setitimer / SIGVTALRM]
-        CPU[Physical CPU Core]
+    subgraph KernelSpace ["Kernel & Hardware Space"]
+        Timer[/Interval Timer<br>SIGVTALRM/]
+        CPU[/Physical CPU Core/]
     end
 
-    Running -->|Yields/Preempted| Sched
-    Timer -->|SIGVTALRM Interrupt| Running
-    Sched -->|Selects Next READY| Running
-    Running -->|Lock unavailable| Mutex
-    Mutex -->|Blocks TCB| WaitQ
-    Mutex -->|Unlocks/Signals| ReadyQ
-    WaitQ -->|Woken up| ReadyQ
-    ReadyQ -->|Dequeued| Sched
-    Running -.->|Runs on| CPU
+    Timer -.->|Preempts via Signal| Running
+    Running ===|Executes instructions on| CPU
 ```
 
 ### Repository Structure
