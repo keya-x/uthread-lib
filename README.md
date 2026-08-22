@@ -10,34 +10,43 @@ The library maps $M$ user-space green threads onto a single kernel thread ($M:1$
 
 ```mermaid
 flowchart TB
-    subgraph UserSpace ["User Space (M:1 Threading Model)"]
+    subgraph UserSpace["User Space — M:1 Threading Model"]
         direction TB
-        
-        subgraph States ["Thread State Machine"]
-            Ready([READY Queue])
-            Running([RUNNING Thread])
-            Blocked([BLOCKED Queue])
-        end
-        
-        Scheduler{"Scheduler Engine\n(FCFS, RR, MLFQ, Priority)"}
-        Sync{"Synchronization\n(Mutex, Sem, CondVar)"}
-        
-        Ready ==>|Dequeued| Scheduler
-        Scheduler ==>|Context Switch| Running
+
+        Scheduler{{"Scheduler Engine\nFCFS · RR · MLFQ · Priority"}}
+        Sync{{"Sync Primitives\nMutex · Semaphore · CondVar"}}
+
+        Ready(["READY Queue"])
+        Running(["RUNNING Thread"])
+        Blocked(["BLOCKED Queue"])
+
+        Ready -->|dequeue| Scheduler
+        Scheduler -->|context switch| Running
+
         Running -->|uthread_yield| Ready
-        Running -->|Wait on Lock| Sync
-        Sync -->|Blocks TCB| Blocked
-        Sync -->|Unlock / Signal| Ready
-        Blocked -.->|Woken Up| Ready
+        Running -->|acquire lock / wait| Sync
+
+        Sync -->|no owner: blocks TCB| Blocked
+        Sync -->|unlock / signal: wakes one| Ready
+
+        Blocked -.->|woken by signal/unlock| Ready
     end
 
-    subgraph KernelSpace ["Kernel & Hardware Space"]
-        Timer[/Interval Timer<br>SIGVTALRM/]
-        CPU[/Physical CPU Core/]
+    subgraph KernelSpace["Kernel & Hardware"]
+        Timer[["Interval Timer\nSIGVTALRM"]]
+        CPU[["Physical CPU Core"]]
     end
 
-    Timer -.->|Preempts via Signal| Running
-    Running ===|Executes instructions on| CPU
+    Timer -.->|preempts| Running
+    Running ==>|executes on| CPU
+
+    classDef state fill:#eef2ff,stroke:#4f46e5,stroke-width:1.5px,color:#1e1b4b;
+    classDef engine fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f;
+    classDef kernel fill:#f1f5f9,stroke:#475569,stroke-width:1.5px,color:#0f172a;
+
+    class Ready,Running,Blocked state;
+    class Scheduler,Sync engine;
+    class Timer,CPU kernel;
 ```
 
 ### Repository Structure
