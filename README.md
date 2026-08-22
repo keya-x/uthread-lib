@@ -40,11 +40,13 @@ flowchart TB
     Timer -.->|preempts| Running
     Running ==>|executes on| CPU
 
-    classDef state fill:#eef2ff,stroke:#4f46e5,stroke-width:1.5px,color:#1e1b4b;
-    classDef engine fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f;
-    classDef kernel fill:#f1f5f9,stroke:#475569,stroke-width:1.5px,color:#0f172a;
+    classDef state fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#1e3a8a;
+    classDef engine fill:#fde68a,stroke:#b45309,stroke-width:2px,color:#78350f;
+    classDef kernel fill:#e2e8f0,stroke:#334155,stroke-width:2px,color:#1e293b;
+    classDef running fill:#bbf7d0,stroke:#15803d,stroke-width:2.5px,color:#14532d;
 
-    class Ready,Running,Blocked state;
+    class Ready,Blocked state;
+    class Running running;
     class Scheduler,Sync engine;
     class Timer,CPU kernel;
 ```
