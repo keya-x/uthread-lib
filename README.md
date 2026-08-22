@@ -107,7 +107,7 @@ The library was evaluated against native Linux kernel threads (`pthreads`) on an
 
 ### 1. Context Switch Latency
 
-*Your custom library context-switches **3x to 5x faster** than native kernel threads by completely avoiding the overhead of user-to-kernel mode transitions.*
+*The custom library context-switches **3x to 5x faster** than native kernel threads by completely avoiding the overhead of user-to-kernel mode transitions.*
 
 | Thread Type                    | Scheduler / Config | Avg Context Switch Time | Throughput (Yields/sec) |
 | ------------------------------ | ------------------ | ----------------------- | ----------------------- |
